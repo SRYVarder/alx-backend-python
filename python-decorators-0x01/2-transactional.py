@@ -3,7 +3,7 @@ import functools
 
 
 def with_db_connection(func):
-    """Decorator to handle opening and closing database connections"""
+## Decorator to handle opening and closing database connections
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         conn = sqlite3.connect("users.db")
@@ -16,7 +16,7 @@ def with_db_connection(func):
 
 
 def transactional(func):
-    """Decorator to manage database transactions"""
+## Decorator to manage database transactions
     @functools.wraps(func)
     def wrapper(conn, *args, **kwargs):
         try:
