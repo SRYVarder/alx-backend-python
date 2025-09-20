@@ -71,14 +71,7 @@ class TestGithubOrgClient(unittest.TestCase):
                          expected_result)
 
 
-@parameterized_class([
-    (
-        TEST_PAYLOAD[0][0],
-        TEST_PAYLOAD[0][1],
-        TEST_PAYLOAD[0][2],
-        TEST_PAYLOAD[0][3]
-    ),
-])
+@parameterized_class([TEST_PAYLOAD[0]])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
     Integration test for the GithubOrgClient.
@@ -106,4 +99,10 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient("google")
         self.assertEqual(client.public_repos(), self.expected_repos)
+
+    def test_public_repos_with_license(self):
+        """
+        Test public_repos with a specific license.
+        """
+        client = GithubOrgClient("google")
         self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
