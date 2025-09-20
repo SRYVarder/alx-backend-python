@@ -240,9 +240,8 @@ class TestGithubOrgClient(unittest.TestCase):
     ),
 ], params=[
     ('org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'),
-],
-                     
-class_name_func=lambda cls, _, idx: f'TestIntegrationGithubOrgClient_{idx}')
+], class_name_func=lambda cls, _, idx: f'TestIntegrationGithubOrgClient_{idx}')
+
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
     Integration tests for the complete GithubOrgClient workflow.
