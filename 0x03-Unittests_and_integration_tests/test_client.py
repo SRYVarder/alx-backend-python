@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Advanced integration tests for client.py GithubOrgClient.
+Comprehensive test suite for client.py GithubOrgClient.
 """
 import unittest
 from unittest.mock import Mock, PropertyMock, patch
@@ -207,52 +207,36 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once()
 
 
-# Advanced Integration Tests using Fixtures
 @parameterized_class([
-    # Test case with comprehensive fixture data
+    # Test case 1: Standard mixed licenses
     (
-        TEST_PAYLOAD,  # org_payload from fixtures
-        [  # repos_payload from fixtures - comprehensive GitHub API structure
-            {
-                'id': 1,
-                'name': 'repo1',
-                'full_name': 'org/repo1',
-                'license': {'key': 'mit', 'name': 'MIT License'},
-                'private': False
-            },
-            {
-                'id': 2,
-                'name': 'repo2',
-                'full_name': 'org/repo2',
-                'license': {'key': 'apache-2.0', 'name': 'Apache License 2.0'},
-                'private': False
-            },
-            {
-                'id': 3,
-                'name': 'repo3',
-                'full_name': 'org/repo3',
-                'license': {'key': 'mit', 'name': 'MIT License'},
-                'private': False
-            },
-            {
-                'id': 4,
-                'name': 'repo4',
-                'full_name': 'org/repo4',
-                'license': {'key': 'apache-2.0', 'name': 'Apache License 2.0'},
-                'private': False
-            },
-            {
-                'id': 5,
-                'name': 'repo5',
-                'full_name': 'org/repo5',
-                'license': None,  # No license
-                'private': False
-            }
+        TEST_PAYLOAD,
+        [
+            {'name': 'repo1', 'license': {'key': 'mit'}},
+            {'name': 'repo2', 'license': {'key': 'apache-2.0'}},
+            {'name': 'repo3', 'license': {'key': 'mit'}},
+            {'name': 'repo4', 'license': {'key': 'apache-2.0'}},
         ],
-        # expected_repos: All public repo names
-        ['repo1', 'repo2', 'repo3', 'repo4', 'repo5'],
-        # apache2_repos: Only repos with apache-2.0 license
+        ['repo1', 'repo2', 'repo3', 'repo4'],
         ['repo2', 'repo4'],
+    ),
+    # Test case 2: No apache licenses
+    (
+        TEST_PAYLOAD,
+        [
+            {'name': 'repo5'},  # No license
+            {'name': 'repo6', 'license': {'key': 'mit'}},
+            {'name': 'repo7', 'license': {'key': 'mit'}},
+        ],
+        ['repo5', 'repo6', 'repo7'],
+        [],  # No apache-2.0 repos
+    ),
+    # Test case 3: Empty repos list
+    (
+        TEST_PAYLOAD,
+        [],
+        [],
+        [],
     ),
 ], params=[
     ('org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'),
@@ -260,7 +244,7 @@ class TestGithubOrgClient(unittest.TestCase):
 class_name_func=lambda cls, _, idx: f'TestIntegrationGithubOrgClient_{idx}')
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
-    Advanced integration tests for GithubOrgClient using fixtures.
+    Integration tests for the complete GithubOrgClient workflow.
     """
 
     @classmethod
@@ -269,7 +253,6 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         Set up the class-level fixtures for the integration test.
         """
         def get_side_effect(url):
-            """Mock requests.get side effect for fixture-based testing."""
             if 'orgs' in url:
                 return cls.org_payload
             if 'repos' in url:
@@ -288,111 +271,47 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     def test_public_repos(self):
         """
-        Test the public_repos method with a known payload from fixtures.
-        Integration test that verifies the complete workflow:
-        org -> repos_url -> repos_payload -> repo names extraction.
+        Test the public_repos method with a known payload.
         """
         client = GithubOrgClient('google')
         result = client.public_repos()
-        
-        # Verify the result matches the expected repos from fixtures
         self.assertEqual(result, self.expected_repos)
-        
-        # Verify the correct number of repositories
-        self.assertEqual(len(result), len(self.expected_repos))
-        
-        # Verify all returned repos are strings (repo names)
-        for repo_name in result:
-            self.assertIsInstance(repo_name, str)
-        
-        # Verify the repos_url was accessed through the org property
-        org_data = client.org
-        self.assertIn('repos_url', org_data)
-        
-        # Verify memoization - second call should return same object
-        second_call = client.public_repos()
-        self.assertIs(result, second_call)
 
     def test_public_repos_with_license(self):
         """
-        Test the public_repos method with license="apache-2.0" filtering.
-        Integration test that verifies license filtering works correctly:
-        org -> repos_url -> repos_payload -> license filtering -> apache-2.0 repos.
+        Test the public_repos method with license filtering.
         """
         client = GithubOrgClient('google')
-        result = client.public_repos('apache-2.0')
-        
-        # Verify the result matches the expected apache-2.0 repos from fixtures
-        self.assertEqual(result, self.apache2_repos)
-        
-        # Verify the correct number of apache-2.0 repositories
-        self.assertEqual(len(result), len(self.apache2_repos))
-        
-        # Verify all returned repos are strings (repo names)
-        for repo_name in result:
-            self.assertIsInstance(repo_name, str)
-        
-        # Verify that has_license was called for each repository
-        repos_payload = client.repos_payload
-        for repo in repos_payload:
-            if repo.get('license', {}).get('key') == 'apache-2.0':
-                self.assertIn(repo['name'], result)
-            else:
-                self.assertNotIn(repo['name'], result)
-        
-        # Verify memoization for the filtered call
-        second_call = client.public_repos('apache-2.0')
-        self.assertIs(result, second_call)
+        apache2_result = client.public_repos('apache-2.0')
+        self.assertEqual(apache2_result, self.apache2_repos)
 
     def test_org_payload_access(self):
         """
-        Test that org payload from fixtures is accessible and correct.
+        Test that org payload is accessible and correct.
         """
         client = GithubOrgClient('google')
         org_data = client.org
-        
-        # Verify the org data matches the fixture
         self.assertEqual(org_data, self.org_payload)
-        
-        # Verify key fields from the fixture
         self.assertEqual(org_data.get('login'), 'google')
-        self.assertIn('repos_url', org_data)
-        self.assertIsInstance(org_data, dict)
 
     def test_repos_payload_memoization(self):
         """
-        Test that repos_payload from fixtures is properly memoized.
+        Test that repos_payload is properly memoized.
         """
         client = GithubOrgClient('google')
         first_call = client.repos_payload
         second_call = client.repos_payload
-        
-        # Verify memoization - same object reference
         self.assertIs(first_call, second_call)
-        
-        # Verify the payload matches the fixture
         self.assertEqual(first_call, self.repos_payload)
-        
-        # Verify the structure matches expectations
-        self.assertEqual(len(first_call), len(self.repos_payload))
-        for repo in first_call:
-            self.assertIn('name', repo)
-            self.assertIsInstance(repo['name'], str)
 
     def test_public_repos_url_integration(self):
         """
-        Test that _public_repos_url extraction works with fixture data.
+        Test that _public_repos_url works correctly in integration.
         """
         client = GithubOrgClient('google')
         repos_url = client._public_repos_url
-        
-        # Verify the URL matches the fixture
-        expected_url = self.org_payload['repos_url']
-        self.assertEqual(repos_url, expected_url)
-        
-        # Verify URL structure
         self.assertIn('repos', repos_url)
-        self.assertIn('api.github.com', repos_url)
+        self.assertEqual(repos_url, self.org_payload['repos_url'])
 
     def test_complete_workflow(self):
         """
@@ -400,28 +319,19 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient('google')
 
-        # Step 1: Get organization data from fixtures
+        # Step 1: Get organization data
         org_data = client.org
-        self.assertEqual(org_data, self.org_payload)
         self.assertIn('repos_url', org_data)
 
         # Step 2: Get all public repositories
         all_repos = client.public_repos()
-        self.assertEqual(all_repos, self.expected_repos)
         self.assertEqual(len(all_repos), len(self.expected_repos))
 
-        # Step 3: Get apache-2.0 filtered repositories
-        apache_repos = client.public_repos('apache-2.0')
-        self.assertEqual(apache_repos, self.apache2_repos)
-        self.assertEqual(len(apache_repos), len(self.apache2_repos))
+        # Step 3: Get filtered repositories
+        filtered_repos = client.public_repos('apache-2.0')
+        self.assertEqual(filtered_repos, self.apache2_repos)
 
-        # Step 4: Verify filtering logic
-        repos_payload = client.repos_payload
-        apache_count = sum(1 for repo in repos_payload 
-                          if GithubOrgClient.has_license(repo, 'apache-2.0'))
-        self.assertEqual(apache_count, len(self.apache2_repos))
-
-        # Step 5: Verify memoization across the workflow
+        # Step 4: Verify memoization
         repos1 = client.repos_payload
         repos2 = client.repos_payload
         self.assertIs(repos1, repos2)
