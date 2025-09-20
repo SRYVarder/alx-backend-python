@@ -92,7 +92,7 @@ class TestGithubOrgClient(unittest.TestCase):
 
     def test_has_license(self):
         """
-        Test that GithubOrgClient.has_license returns the correct boolean value.
+        Test that GithubOrgClient.has_license returns the corr boolean value.
         """
         # Test case 1: Repository has matching license
         repo_with_license = {'license': {'key': 'mit'}}
