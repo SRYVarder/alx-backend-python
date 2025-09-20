@@ -29,7 +29,7 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once_with(
             f"https://api.github.com/orgs/{org_name}")
 
-    def test_public_repos_url(self):
+     def test_public_repos_url(self):
         """
         Test that _public_repos_url returns the correct URL.
         """
@@ -40,7 +40,7 @@ class TestGithubOrgClient(unittest.TestCase):
             self.assertEqual(client._public_repos_url,
                              "http://mocked_url.com")
 
-   @patch('client.get_json')
+    @patch('client.get_json')
     def test_public_repos(self, mock_get_json):
         """
         Test that public_repos returns the correct list of repositories.
