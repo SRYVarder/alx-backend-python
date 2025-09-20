@@ -88,11 +88,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """
         Set up the class-level fixtures for the integration test.
         """
-        cls.get_patcher = patch('requests.get',
-                                side_effect=[
-                                    Mock(**{'json.return_value': cls.org_payload}),
-                                    Mock(**{'json.return_value': cls.repos_payload})
-                                ])
+        def get_side_effect(url):
+            if url.endswith("/orgs/google"):
+                return Mock(**{'json.return_value': cls.org_payload})
+            if url.endswith("/repos"):
+                return Mock(**{'json.return_value': cls.repos_payload})
+            return Mock(**{'json.return_value': {}})
+
+        cls.get_patcher = patch('requests.get', side_effect=get_side_effect)
         cls.get_patcher.start()
 
     @classmethod
