@@ -22,6 +22,7 @@ class User(AbstractUser):
     # Set the email field as the unique identifier for authentication
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'role']
+    PASSWORD_FIELDS = ['password']
 
     # Add unique related_name arguments to avoid clashes
     groups = models.ManyToManyField(
@@ -57,4 +58,5 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     message_body = models.TextField(blank=False, null=False)
     sent_at = models.DateTimeField(auto_now_add=True)
+
 
