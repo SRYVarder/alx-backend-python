@@ -105,7 +105,8 @@ class TestGithubOrgClient(unittest.TestCase):
                 (org_payload, repos_payload, expected_repos, apache2_repos),
             ]
         )
-        class TestIntegrationGithubOrgClient(unittest.TestCase):
+    
+class TestIntegrationGithubOrgClient(unittest.TestCase):
             """
             Integration tests for GithubOrgClient.public_repos
             using fixture payloads.
