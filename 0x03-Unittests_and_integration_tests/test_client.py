@@ -71,7 +71,14 @@ class TestGithubOrgClient(unittest.TestCase):
                          expected_result)
 
 
-@parameterized_class([TEST_PAYLOAD[0]])
+@parameterized_class([
+    (
+        TEST_PAYLOAD[0][0],
+        TEST_PAYLOAD[0][1],
+        TEST_PAYLOAD[0][2],
+        TEST_PAYLOAD[0][3]
+    )
+])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
     Integration test for the GithubOrgClient.
@@ -82,8 +89,10 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         Set up the class-level fixtures for the integration test.
         """
         cls.get_patcher = patch('requests.get',
-                                side_effect=[cls.org_payload,
-                                             cls.repos_payload])
+                                side_effect=[
+                                    Mock(**{'json.return_value': cls.org_payload}),
+                                    Mock(**{'json.return_value': cls.repos_payload})
+                                ])
         cls.get_patcher.start()
 
     @classmethod
@@ -99,10 +108,4 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient("google")
         self.assertEqual(client.public_repos(), self.expected_repos)
-
-    def test_public_repos_with_license(self):
-        """
-        Test public_repos with a specific license.
-        """
-        client = GithubOrgClient("google")
         self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
