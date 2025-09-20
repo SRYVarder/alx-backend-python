@@ -74,7 +74,6 @@ class TestGithubOrgClient(unittest.TestCase):
 @parameterized_class([
     ("org_payload", "repos_payload", "expected_repos", "apache2_repos")
 ])
-
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """
     Integration test for the GithubOrgClient.
@@ -85,9 +84,11 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         Set up the class-level fixtures for the integration test.
         """
         def get_side_effect(url):
-            if url == "http://repos_url.com":
+            if "orgs" in url:
+                return Mock(**{'json.return_value': cls.org_payload})
+            if "repos" in url:
                 return Mock(**{'json.return_value': cls.repos_payload})
-            return Mock(**{'json.return_value': cls.org_payload})
+            return Mock(**{'json.return_value': {}})
 
         cls.get_patcher = patch('requests.get', side_effect=get_side_effect)
         cls.get_patcher.start()
