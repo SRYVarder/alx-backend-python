@@ -207,12 +207,12 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once()
 
 
-# Fixed: Correct @parameterized_class syntax with proper string literals
+# Advanced Integration Tests using Fixtures
 @parameterized_class([
     # Test case with comprehensive fixture data
     (
-        TEST_PAYLOAD,
-        [  # repos_payload - comprehensive GitHub API structure
+        TEST_PAYLOAD,  # org_payload from fixtures
+        [  # repos_payload from fixtures - comprehensive GitHub API structure
             {
                 'id': 1,
                 'name': 'repo1',
