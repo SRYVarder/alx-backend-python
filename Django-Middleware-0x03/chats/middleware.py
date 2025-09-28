@@ -70,7 +70,7 @@ class OffensiveLanguageMiddleware(MiddlewareMixin):
         response = self.get_response(request)
         return response
     
-class RolePermissionMiddleware(MiddlewareMixin):
+class RolepermissionMiddleware(MiddlewareMixin):
     """Middleware to restrict actions to admin or moderator roles."""
     def __init__(self, get_response):
         """Initialize with the get_response callable."""
@@ -86,3 +86,4 @@ class RolePermissionMiddleware(MiddlewareMixin):
                 return HttpResponseForbidden("Only admins or moderators can perform this action.")
         response = self.get_response(request)
         return response
+
