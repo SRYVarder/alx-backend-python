@@ -1,36 +1,39 @@
 
-from rest_framework import viewsets, status
+
+from rest_framework import viewsets
+from chats.permissions import IsParticipantOfConversation
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
-from rest_framework import filters
+from chats.pagination import MessagePagination
+from chats.filters import MessageFilter
+
 
 class ConversationViewSet(viewsets.ModelViewSet):
+   
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+
+    permission_classes = [IsParticipantOfConversation]
+
+    def get_queryset(self):
+        # This filters the list of objects returned for the 'list' action.
+        # It ensures that only conversations where the current user is a participant are returned.
+        return self.queryset.filter(participants=self.request.user) 
+
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['sender__first_name', 'message_body']
+    filterset_class = MessageFilter
 
-    @action(detail=True, methods=['post'])
-    def mark_as_read(self, request, pk=None):
-        """
-        Marks a specific message as read and returns a success status.
-        """
-        try:
-            message = self.get_object()
-            # In a real application, you would update the message's status here
-            # For example: message.is_read = True; message.save()
-            
-            # Return a 200 OK status to indicate success
-            return Response({'status': 'message marked as read'}, status=status.HTTP_200_OK)
-        except Message.DoesNotExist:
-            # If the message is not found, return a 404 Not Found status
-            return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+    pagination_class = MessagePagination
+
+    permission_classes = [IsParticipantOfConversation]
+
+    def get_queryset(self):
+        # This filters the list of objects returned for the 'list' action.
+        # It ensures that only messages where the current user is a participant are returned.
+        return self.queryset.filter(conversation__participants=self.request.user)
+
 
 # Create your views here.
-
-
-
