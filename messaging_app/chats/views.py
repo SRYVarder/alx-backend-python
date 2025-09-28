@@ -11,7 +11,6 @@ from chats.filters import MessageFilter
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
-    # Add IsAuthenticated to ensure only authenticated users can access
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
 
     def get_queryset(self):
@@ -24,22 +23,24 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     filterset_class = MessageFilter
     pagination_class = MessagePagination
-    # Add IsAuthenticated to ensure only authenticated users can access
     permission_classes = [IsAuthenticated, IsParticipantOfConversation]
 
     def get_queryset(self):
-        # Get conversation_id from query parameters (if provided)
-        conversation_id = self.request.query_params.get('conversation_id', None)
-        queryset = self.queryset.filter(conversation__participants=self.request.user)
+        # Explicitly use Message.objects.filter to ensure messages are filtered
+        # by conversations where the user is a participant
+        queryset = Message.objects.filter(conversation__participants=self.request.user)
         
-        # Filter messages by conversation_id if provided
+        # Filter by conversation_id if provided in query parameters
+        conversation_id = self.request.query_params.get('conversation_id', None)
         if conversation_id:
-            queryset = queryset.filter(conversation__id=conversation_id)
+            queryset = Message.objects.filter(
+                conversation__participants=self.request.user,
+                conversation__id=conversation_id
+            )
         
         return queryset
 
     def create(self, request, *args, **kwargs):
-        # Override create to handle permission errors explicitly
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
