@@ -39,7 +39,7 @@ def delete_user(request):
 
 @login_required
 def unread_messages(request):
-    messages = Message.objects.filter(receiver=request.user, is_read=False)
+    messages = Message.objects.filter(receiver=request.user).select_related('sender').only('id', 'sender', 'content', 'created_at')
     return render(request, 'messaging/unread_messages.html', {'messages': messages})
 
 
