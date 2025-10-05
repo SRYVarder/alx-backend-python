@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
-
+from django.db.models import Q
 
 def message_history(request, message_id):
     message = Message.objects.get(id=message_id)
@@ -39,11 +39,14 @@ def delete_user(request):
 
 @login_required
 def unread_messages(request):
-    messages = Message.unread_objects.unread_for_user(request.user)
+    messages = Message.objects.filter(receiver=request.user).select_related('sender').only('id', 'sender', 'content', 'created_at')
     return render(request, 'messaging/unread_messages.html', {'messages': messages})
+
 
 @cache_page(60)  # Cache for 60 seconds
 @login_required
 def message_list(request):
-    messages = Message.objects.filter(receiver=request.user).select_related('sender')
+    messages = Message.objects.filter(
+        Q(sender=request.user) | Q(receiver=request.user)
+    ).select_related('sender', 'receiver')
     return render(request, 'messaging/message_list.html', {'messages': messages})
