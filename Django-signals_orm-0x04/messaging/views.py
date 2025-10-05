@@ -39,8 +39,7 @@ def delete_user(request):
 
 @login_required
 def unread_messages(request):
-    # ✅ This line is required and now valid
-    messages = Message.unread_objects.unread_for_user(request.user)
+    messages = Message.objects.filter(receiver=request.user, is_read=False)
     return render(request, 'messaging/unread_messages.html', {'messages': messages})
 
 
