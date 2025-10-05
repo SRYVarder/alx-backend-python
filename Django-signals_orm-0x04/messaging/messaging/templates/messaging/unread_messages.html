@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unread Messages</title>
+</head>
+<body>
+    <h1>Unread Messages</h1>
+    <ul>
+        {% for message in messages %}
+            <li>{{ message.content }} (From: {{ message.sender.username }})</li>
+        {% empty %}
+            <li>No unread messages</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
