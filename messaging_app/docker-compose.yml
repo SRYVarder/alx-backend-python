@@ -4,7 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Expose Django app port
     environment:
       - DATABASE_HOST=db
       - DATABASE_PORT=3306
@@ -15,12 +15,12 @@ services:
       - db
     volumes:
       - .:/app
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: python3 manage.py runserver 0.0.0.0:8000  # Explicitly use python3
 
   db:
     image: mysql:8.0
     environment:
-      - MYSQL_DATABASE=messaging_db
+      - MYSQL_DATABASE=messaging_db  # Explicitly set MYSQL_DATABASE
       - MYSQL_USER=app_user
       - MYSQL_PASSWORD=securepassword
       - MYSQL_ROOT_PASSWORD=rootpassword
