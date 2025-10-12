@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=messaging_db
+      - DATABASE_USER=app_user
+      - DATABASE_PASSWORD=securepassword
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=messaging_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=securepassword
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  mysql_data:
