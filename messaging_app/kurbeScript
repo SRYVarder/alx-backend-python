@@ -13,3 +13,4 @@ kubectl cluster-info
 echo "Retrieving pods..."
 kubectl get pods --all-namespaces || true
 echo "Done."
+
