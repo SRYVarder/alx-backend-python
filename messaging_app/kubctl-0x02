@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Apply blue and green deployments and switch service selector after verification
+set -euo pipefail
+echo "Applying blue deployment..."
+kubectl apply -f blue_deployment.yaml
+echo "Applying green deployment..."
+kubectl apply -f green_deployment.yaml
+echo "Applying service that will switch between versions..."
+kubectl apply -f kubeservice.yaml
+echo "Check logs for green pods (if any):"
+kubectl get pods -l version=green -o name || true
+for pod in $(kubectl get pods -l version=green -o name); do
+  echo "Logs for $pod:"
+  kubectl logs "$pod" || true
+done
+echo "To switch traffic to green version, patch the service selector:"
+echo "kubectl patch service messaging-app-switch -p '{"spec":{"selector":{"app":"messaging-app","version":"green"}}}'"

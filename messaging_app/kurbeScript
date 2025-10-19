@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# kurbeScript - start minikube, verify cluster, list pods
+set -euo pipefail
+echo "Checking if minikube is installed..."
+if ! command -v minikube >/dev/null 2>&1; then
+  echo "minikube not found. Please install minikube (https://minikube.sigs.k8s.io/docs/start/)"
+  exit 1
+fi
+echo "Starting minikube..."
+minikube start --driver=docker
+echo "Verifying cluster..."
+kubectl cluster-info
+echo "Retrieving pods..."
+kubectl get pods --all-namespaces || true
+echo "Done."

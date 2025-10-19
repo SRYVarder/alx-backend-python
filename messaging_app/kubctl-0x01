@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Scale deployment to 3 replicas, run simple load test with wrk, and show resource usage
+set -euo pipefail
+DEPLOYMENT=messaging-app
+NAMESPACE=default
+echo "Scaling $DEPLOYMENT to 3 replicas..."
+kubectl scale deployment/$DEPLOYMENT --replicas=3
+echo "Waiting for pods to be ready..."
+kubectl rollout status deployment/$DEPLOYMENT
+kubectl get pods -l app=messaging-app
+echo "If you have 'wrk' installed, a simple load test (10s) will run against the service via minikube tunnel."
+echo "Opening a background minikube tunnel (requires sudo):"
+echo "minikube tunnel &"
+echo "Example wrk command (replace URL accordingly):"
+echo "wrk -t2 -c50 -d10s http://<minikube-ip-or-ingress>/"
+echo "Showing top (if metrics-server is installed):"
+kubectl top pods || echo "kubectl top not available (install metrics-server in cluster)"

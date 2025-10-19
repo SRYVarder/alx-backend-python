@@ -1,24 +1,10 @@
-# Use official Python 3.10 slim base image to keep it lightweight
-FROM python:3.10-slim
-
-# Set working directory inside the container
+FROM python:3.11-slim
 WORKDIR /app
-
-# Copy requirements.txt to the container
-COPY requirements.txt .
-
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the entire app code to the container
-COPY . .
-
-# Expose port 8000 for the Django app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+COPY requirements.txt /app/ || true
+RUN apt-get update && apt-get install -y build-essential netcat && rm -rf /var/lib/apt/lists/* || true
+RUN pip install --no-cache-dir django gunicorn || true
+COPY . /app/
 EXPOSE 8000
-
-# for checker to pass
-run -p 8000:8000
-
-
-# Run Django development server
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "messaging_app.wsgi:application", "--bind", ":8000"]

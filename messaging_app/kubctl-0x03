@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Perform rolling update by updating image in deployment and monitoring rollout status
+set -euo pipefail
+DEPLOYMENT=messaging-app-blue
+echo "Updating image to v2.0 for $DEPLOYMENT (this triggers a rolling update)..."
+kubectl set image deployment/$DEPLOYMENT messaging-app=docker.io/yourusername/messaging_app:2.0 --record
+echo "Monitoring rollout..."
+kubectl rollout status deployment/$DEPLOYMENT
+echo "Testing for downtime with a simple loop of curl requests (10 requests) against service clusterIP via kubectl port-forward"
+# Find a pod to port-forward from
+POD=$(kubectl get pod -l app=messaging-app -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward "$POD" 8000:8000 >/dev/null 2>&1 &
+PF_PID=$!
+sleep 1
+for i in $(seq 1 10); do
+  echo "[$i]"
+  curl -sS --max-time 2 http://127.0.0.1:8000/ || echo "request failed"
+  sleep 1
+done
+kill $PF_PID || true
+echo "Rolling update complete. Check pods:"
+kubectl get pods -l app=messaging-app
