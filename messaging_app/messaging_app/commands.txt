@@ -1,0 +1,4 @@
+kubectl apply -f ingress.yaml
+# If using minikube:
+# minikube addons enable ingress
+# kubectl apply -f ingress.yaml
