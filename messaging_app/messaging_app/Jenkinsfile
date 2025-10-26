@@ -2,15 +2,14 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_REPO = 'https://github.com/SRYVarder/alx-backend-python.git'
         APP_DIR = 'messaging_app'
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-creds')
+        GITHUB_REPO = 'https://github.com/SRYVarder/alx-backend-python.git'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: "${GITHUB_REPO}"
+                git branch: 'main', url: "${GITHUB_REPO}", credentialsId: 'github-creds'
             }
         }
 
@@ -18,10 +17,10 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    cd ${APP_DIR}
                     python3 -m venv venv
                     . venv/bin/activate
-                    pip install -r requirements.txt
+                    pip3 install --upgrade pip
+                    pip3 install -r messaging_app/requirements.txt
                     '''
                 }
             }
@@ -31,9 +30,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    cd ${APP_DIR}
                     . venv/bin/activate
-                    pytest --maxfail=1 --disable-warnings -q --junitxml=test-results.xml
+                    pytest messaging_app --maxfail=1 --disable-warnings -q --junitxml=messaging_app/test-results.xml
                     '''
                 }
             }
@@ -48,19 +46,22 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    cd ${APP_DIR}
-                    docker build -t $DOCKER_HUB_CREDENTIALS_USR/messaging_app:latest .
+                    docker build -t messaging_app:latest ${APP_DIR}
                     '''
                 }
             }
         }
 
         stage('Push Docker Image') {
+            environment {
+                DOCKER_HUB = credentials('dockerhub-creds')
+            }
             steps {
                 script {
                     sh '''
-                    echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                    docker push $DOCKER_HUB_CREDENTIALS_USR/messaging_app:latest
+                    echo $DOCKER_HUB_PSW | docker login -u $DOCKER_HUB_USR --password-stdin
+                    docker tag messaging_app:latest $DOCKER_HUB_USR/messaging_app:latest
+                    docker push $DOCKER_HUB_USR/messaging_app:latest
                     '''
                 }
             }
